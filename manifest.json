@@ -1,0 +1,6 @@
+{
+  "name": "multisig",
+  "short_name": "multisig",
+  "start_url": "/",
+  "display": "standalone"
+}
