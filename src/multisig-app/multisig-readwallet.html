@@ -1,0 +1,216 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-styles/shadow.html">
+
+<dom-module id="multisig-readwallet">
+  <template>
+  <style>
+  :host {
+    @apply(--paper-font-common-base);
+    font-size: 14px;
+    margin: 0;
+    padding: 24px;
+  }
+  p {
+    @apply(--paper-font-common-base);
+    font-size: 14px;
+    margin-top: 20px;
+    margin-bottom: -10px;
+    line-height: normal;
+    padding-top: 10px;
+    border-bottom: 1px dashed var(--paper-grey-30);
+  }
+  paper-input {
+    margin-bottom: 10px;
+  }
+  iron-pages {
+    width: 100%;
+    height: 100%;
+  }
+  .horizontal-section-container {
+    @apply(--layout-horizontal);
+    @apply(--layout-center-justified);
+    @apply(--layout-wrap);
+  }
+  .vertical-section-container {
+    @apply(--layout-vertical);
+    @apply(--center-justified);
+  }
+  .horizontal-section {
+    background-color: white;
+    padding: 24px;
+    margin-right: 24px;
+    min-width: 200px;
+    @apply(--shadow-elevation-2dp);
+  }
+  .vertical-section {
+    background-color: white;
+    padding: 24px;
+    margin: 0 24px 24px 24px;
+    @apply(--shadow-elevation-2dp);
+  }
+  .centered {
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  code {
+    color: var(--google-grey-700);
+  }
+  /* TODO: remove this hack and use horizontal-section-container instead */
+  body > div.layout.horizontal.center-justified {
+    @apply(--layout-wrap);
+  }
+
+  .menuitem {
+    padding: 5px;
+    margin: 5px;
+    border: 1px dashed gray;
+  }
+
+  .whitespace {
+    margin: 20px;
+  }
+
+  </style>
+
+  <iron-pages selected="{{selected}}">
+    <div id="create" class="horizontal-section-container">
+      <div class="vertical-section-container">
+        <h2>0x...</h2>
+        <p>Name of the multisig wallet:</p>
+      </div>
+    </div>
+  </iron-pages>
+
+</template>
+
+<script>
+
+Polymer({
+
+  is: 'multisig-readwallet',
+
+  properties: {
+    prop1: {
+      type: String,
+      value: 'multisig-readwallet',
+    },
+    web3: {
+      type: Object,
+      observer: '_web3'
+    },
+    abiArray: {
+      type: Array,
+      value: [{"constant":false,"inputs":[{"name":"_owner","type":"address"}],"name":"removeOwner","outputs":[],"type":"function"},{"constant":false,"inputs":[{"name":"_addr","type":"address"}],"name":"isOwner","outputs":[{"name":"","type":"bool"}],"type":"function"},{"constant":true,"inputs":[],"name":"m_numOwners","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"m_lastDay","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"version","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[],"name":"resetSpentToday","outputs":[],"type":"function"},{"constant":true,"inputs":[],"name":"m_spentToday","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[{"name":"_owner","type":"address"}],"name":"addOwner","outputs":[],"type":"function"},{"constant":true,"inputs":[],"name":"m_required","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[{"name":"_h","type":"bytes32"}],"name":"confirm","outputs":[{"name":"","type":"bool"}],"type":"function"},{"constant":false,"inputs":[{"name":"_newLimit","type":"uint256"}],"name":"setDailyLimit","outputs":[],"type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"},{"name":"_data","type":"bytes"}],"name":"execute","outputs":[{"name":"_r","type":"bytes32"}],"type":"function"},{"constant":false,"inputs":[{"name":"_operation","type":"bytes32"}],"name":"revoke","outputs":[],"type":"function"},{"constant":false,"inputs":[{"name":"_newRequired","type":"uint256"}],"name":"changeRequirement","outputs":[],"type":"function"},{"constant":true,"inputs":[{"name":"_operation","type":"bytes32"},{"name":"_owner","type":"address"}],"name":"hasConfirmed","outputs":[{"name":"","type":"bool"}],"type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"}],"name":"kill","outputs":[],"type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"}],"name":"changeOwner","outputs":[],"type":"function"},{"constant":true,"inputs":[],"name":"m_dailyLimit","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"inputs":[{"name":"_owners","type":"address[]"},{"name":"_required","type":"uint256"},{"name":"_daylimit","type":"uint256"}],"type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"owner","type":"address"},{"indexed":false,"name":"operation","type":"bytes32"}],"name":"Confirmation","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"owner","type":"address"},{"indexed":false,"name":"operation","type":"bytes32"}],"name":"Revoke","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"oldOwner","type":"address"},{"indexed":false,"name":"newOwner","type":"address"}],"name":"OwnerChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"newOwner","type":"address"}],"name":"OwnerAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"oldOwner","type":"address"}],"name":"OwnerRemoved","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"newRequirement","type":"uint256"}],"name":"RequirementChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"from","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"owner","type":"address"},{"indexed":false,"name":"value","type":"uint256"},{"indexed":false,"name":"to","type":"address"},{"indexed":false,"name":"data","type":"bytes"}],"name":"SingleTransact","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"owner","type":"address"},{"indexed":false,"name":"operation","type":"bytes32"},{"indexed":false,"name":"value","type":"uint256"},{"indexed":false,"name":"to","type":"address"},{"indexed":false,"name":"data","type":"bytes"}],"name":"MultiTransact","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"operation","type":"bytes32"},{"indexed":false,"name":"initiator","type":"address"},{"indexed":false,"name":"value","type":"uint256"},{"indexed":false,"name":"to","type":"address"},{"indexed":false,"name":"data","type":"bytes"}],"name":"ConfirmationNeeded","type":"event"}]
+    }
+  },
+
+  ready: function() {
+    this.selected = 0;
+    // let's find a web3
+    if (typeof web3 !== 'undefined') {
+      web3 = new Web3(web3.currentProvider);
+      this.web3ready(web3);
+    } else {
+      // set the provider you want from Web3.providers
+      web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+      this.web3ready(web3);
+    };
+  },
+
+  web3ready: function(web3) {
+    console.log('Web3 ready: ', web3);
+    this.accounts = web3.eth.accounts;
+    this.mainaccount = web3.eth.accounts[0];
+    // first thing to do: see if there's anything to sign
+  },
+
+  signmsg: function() {
+    console.log(this.msg);
+    var message = this.msg;
+    web3.eth.sign(this.mainaccount, web3.sha3(message), function(err, result){
+      console.log(err, result);
+      this.msg = '';
+      this.signature = result;
+    }.bind(this));
+  },
+
+  createContract: function() {
+    console.log('Creating contract...');
+    console.log('Compiling multisig.sol');
+
+    var MyContract = web3.eth.contract(this.abiArray);
+    var gas;
+    web3.eth.estimateGas({data: this.contractdata}, function(err, est){
+      console.log('gas:', est);
+      gas = est;
+    })
+
+    // needs address [] owners, uint required
+    var addressarray = [ this.add2, this.add3 ];
+    console.log('Address array');
+    var contractInstance = MyContract.new(addressarray, 2, 2, {data: this.contractdata, from: this.mainaccount, gas: gas }, function(err, myContract){
+      if(!err) {
+        // NOTE: The callback will fire twice!
+        // Once the contract has the transactionHash property set and once its deployed on an address.
+
+        // e.g. check tx hash on the first call (transaction send)
+        if(!myContract.address) {
+          console.log(myContract.transactionHash) // The hash of the transaction, which deploys the contract
+
+          // check address on the second call (contract deployed)
+        } else {
+          console.log(myContract.address) // the contract address
+          this.newcontract = myContract.address;
+          localStorage.setItem('multisig', myContract.address);
+        }
+
+        // Note that the returned "myContractReturned" === "myContract",
+        // so the returned "myContractReturned" object will also get the address set.
+      };
+    }.bind(this));
+  },
+
+
+  _accounts: function() {
+    console.log(this.accounts);
+  },
+
+  _nrsign: function(){
+    console.log(this.nrsign);
+    var nr = this.nrsign;
+    nr++;
+    this.totalsign = nr;
+  },
+
+  gotoCreatewallet: function() {
+    this.selected = 0;
+  },
+
+  gotoCreatetx: function() {
+    this.selected = 1;
+  },
+
+  gotoSign: function() {
+    this.selected = 2;
+  },
+
+  gotoSigned: function() {
+    this.selected = 3;
+  },
+
+  gotoSignmsg: function() {
+    this.selected = 4;
+  },
+
+});
+</script>
+</dom-module>
