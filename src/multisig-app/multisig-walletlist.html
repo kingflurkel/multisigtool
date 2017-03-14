@@ -1,0 +1,128 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/paper-styles/shadow.html">
+
+<dom-module id="multisig-walletlist">
+  <template>
+  <style>
+  :host {
+    @apply(--paper-font-common-base);
+    font-size: 14px;
+    margin: 0;
+    padding: 24px;
+  }
+  p {
+    @apply(--paper-font-common-base);
+    font-size: 14px;
+    margin-top: 20px;
+    margin-bottom: -10px;
+    line-height: normal;
+    padding-top: 10px;
+    border-bottom: 1px dashed var(--paper-grey-30);
+  }
+  paper-input {
+    margin-bottom: 10px;
+  }
+  iron-pages {
+    width: 100%;
+    height: 100%;
+  }
+  .horizontal-section-container {
+    @apply(--layout-horizontal);
+    @apply(--layout-center-justified);
+    @apply(--layout-wrap);
+  }
+  .vertical-section-container {
+    @apply(--layout-vertical);
+    @apply(--center-justified);
+  }
+  .horizontal-section {
+    background-color: white;
+    padding: 24px;
+    margin-right: 24px;
+    min-width: 200px;
+    @apply(--shadow-elevation-2dp);
+  }
+  .vertical-section {
+    background-color: white;
+    padding: 24px;
+    margin: 0 24px 24px 24px;
+    @apply(--shadow-elevation-2dp);
+  }
+  .centered {
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  code {
+    color: var(--google-grey-700);
+  }
+  /* TODO: remove this hack and use horizontal-section-container instead */
+  body > div.layout.horizontal.center-justified {
+    @apply(--layout-wrap);
+  }
+
+  .menuitem {
+    padding: 5px;
+    margin: 5px;
+    border: 1px dashed gray;
+  }
+
+  .whitespace {
+    margin: 20px;
+  }
+
+  </style>
+
+
+
+
+  <iron-pages selected="{{selected}}">
+    <div id="create" class="horizontal-section-container">
+      <div class="vertical-section-container">
+        <iron-selector on-iron-select="fireselect">
+          <template is="dom-repeat" items="{{data}}" attr-for-selected="name">
+            <div cname="{{item.size}}" name="{{item.item}}">{{item.size}} - {{item.item}}</div>
+          </template>
+        </iron-selector>
+      </div>
+    </div>
+  </iron-pages>
+
+</template>
+
+<script>
+
+Polymer({
+
+
+  is: 'multisig-walletlist',
+
+  properties: {
+    data: {
+      type: Array
+    }
+  },
+
+  ready: function() {
+    this.selected = 0;
+    // let's find a web3
+  },
+
+  fireselect: function(e){
+    console.log(e.detail);
+    this.fire('wallet-selected', {'address': e.detail.item.name, 'name': e.detail.item.cname });
+  }
+
+});
+</script>
+</dom-module>

@@ -5,7 +5,11 @@
     "polymer": "Polymer/polymer#^1.4.0",
     "web3": "^0.18.2",
     "paper-input": "^1.1.23",
-    "iron-pages": "^1.0.8"
+    "iron-pages": "^1.0.8",
+    "app-storage": "polymerelements/app-storage#^0.9.6",
+    "paper-spinner": "polymerelements/paper-spinner#^1.0.0",
+    "app-route": "polymerelements/app-route#^0.9.1",
+    "paper-elements": "^1.0.7"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

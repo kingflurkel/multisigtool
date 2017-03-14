@@ -4,6 +4,8 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
 
 <link rel="import" href="../../bower_components/paper-styles/color.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
@@ -64,6 +66,14 @@
   code {
     color: var(--google-grey-700);
   }
+
+  paper-tabs {
+    font-family: 'Roboto', 'Noto', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    width: 100%;
+    text-transform: uppercase;
+    margin-bottom: 1px;
+  }
   /* TODO: remove this hack and use horizontal-section-container instead */
   body > div.layout.horizontal.center-justified {
     @apply(--layout-wrap);
@@ -81,31 +91,86 @@
 
   </style>
 
-  <iron-pages selected="{{selected}}">
-    <div id="create" class="horizontal-section-container">
-      <div class="vertical-section-container">
-        <h2>0x...</h2>
-        <p>Name of the multisig wallet:</p>
+  <app-route
+      route="[[route]]"
+      pattern="/:address/:name"
+      data="{{routeData}}"></app-route>
+
+          <h2 on-tap="confirm">{{contractaddress}}</h2>
+          <h2 on-tap="confirm">{{contractname}}</h2>
+
+          <h1>Balance: {{balance}} ether</h1>
+          <p>Your account {{mainaccount}} {{copy}} signatory on this wallet.</p>
+          <p>There are {{nrsign}} signatories.</p>
+          <div on-tap="sendeth">SEND 0.01 ETH</div>
+
+
+      <paper-tabs selected="{{selected}}" attr-for-selected="name">
+        <paper-tab name="tosign">To Sign</paper-tab>
+        <paper-tab name="log">Log</paper-tab>
+      </paper-tabs>
+
+
+  <iron-pages selected="{{selected}}" attr-for-selected="name">
+
+        <div name="tosign">
+          <h3>tosign</h3>
+        <template is="dom-repeat" items="{{tosignevents}}">
+          <p>{{item.logindex}}-{{item.event}}-{{item.value}}</p>
+        </template>
       </div>
+
+        <div name="log">
+
+      <template is="dom-repeat" items="{{contractevents}}">
+        <p>{{item.logindex}}-{{item.event}}-{{item.value}}</p>
+      </template>
+
     </div>
+
+
   </iron-pages>
 
 </template>
 
 <script>
+var web3;
+var block;
 
 Polymer({
+
 
   is: 'multisig-readwallet',
 
   properties: {
-    prop1: {
-      type: String,
-      value: 'multisig-readwallet',
+    contractaddress: {
+      value: "0xff1f11184b781edc62a041067b8165fa7bb2a1a7",
+      observer: '_contractaddress'
+    },
+    route: {
+      observer: '_route'
     },
     web3: {
       type: Object,
-      observer: '_web3'
+      observer: '_mainaccount'
+    },
+    balance: {
+      type: Number
+    },
+    mainaccount: {
+      type: String,
+      observer: '_mainaccount'
+    },
+    nrsign: {
+      type: Number
+    },
+    contractevents: {
+      type: Array,
+      value: []
+    },
+    tosignevents: {
+      type: Array,
+      value: []
     },
     abiArray: {
       type: Array,
@@ -114,102 +179,161 @@ Polymer({
   },
 
   ready: function() {
-    this.selected = 0;
+    this.selected = "tosign";
     // let's find a web3
-    if (typeof web3 !== 'undefined') {
-      web3 = new Web3(web3.currentProvider);
-      this.web3ready(web3);
-    } else {
-      // set the provider you want from Web3.providers
-      web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
-      this.web3ready(web3);
-    };
   },
 
-  web3ready: function(web3) {
-    console.log('Web3 ready: ', web3);
-    this.accounts = web3.eth.accounts;
-    this.mainaccount = web3.eth.accounts[0];
-    // first thing to do: see if there's anything to sign
+  _route: function(){
+    //debugger;
+    console.log(this.routeData.address);
+    this.contractaddress = this.routeData.address;
+    this.contractname = this.routeData.name;
   },
 
-  signmsg: function() {
-    console.log(this.msg);
-    var message = this.msg;
-    web3.eth.sign(this.mainaccount, web3.sha3(message), function(err, result){
-      console.log(err, result);
-      this.msg = '';
-      this.signature = result;
-    }.bind(this));
-  },
+  _mainaccount: function() {
+    web3 = this.web3;
+    var self = this;
+    if(this.contractaddress && web3 && this.mainaccount){
+      self.getTosign();
+    web3.eth.getBalance(this.contractaddress, 'latest', function(n,e){
+      console.log(n, web3.toDecimal(e));
+      var wei = web3.toDecimal(e);
+      self.balance = web3.fromWei(wei, 'ether');
+      console.log(web3.fromWei(wei, 'ether'));
+    });
 
-  createContract: function() {
-    console.log('Creating contract...');
-    console.log('Compiling multisig.sol');
+    var Multiply7 = web3.eth.contract(this.abiArray);
+    var multi = Multiply7.at(this.contractaddress);
+    console.log(multi);
+    multi.isOwner.call(this.mainaccount,function(err,res){
+           if (res === true){
+             console.log(self.mainaccount,' is part of this multisig');
+             self.copy = 'is a';
+           }else{
+             console.log(self.mainaccount,' is not part of this multisig');
+             self.copy = 'is not a';
+           }
+         });
 
-    var MyContract = web3.eth.contract(this.abiArray);
-    var gas;
-    web3.eth.estimateGas({data: this.contractdata}, function(err, est){
-      console.log('gas:', est);
-      gas = est;
-    })
+    multi.m_numOwners.call(function(err, res){
+      console.log(err,web3.toDecimal(res));
+      self.nrsign = web3.toDecimal(res);
+    });
 
-    // needs address [] owners, uint required
-    var addressarray = [ this.add2, this.add3 ];
-    console.log('Address array');
-    var contractInstance = MyContract.new(addressarray, 2, 2, {data: this.contractdata, from: this.mainaccount, gas: gas }, function(err, myContract){
-      if(!err) {
-        // NOTE: The callback will fire twice!
-        // Once the contract has the transactionHash property set and once its deployed on an address.
+    // create filter
+};
 
-        // e.g. check tx hash on the first call (transaction send)
-        if(!myContract.address) {
-          console.log(myContract.transactionHash) // The hash of the transaction, which deploys the contract
+},
 
-          // check address on the second call (contract deployed)
-        } else {
-          console.log(myContract.address) // the contract address
-          this.newcontract = myContract.address;
-          localStorage.setItem('multisig', myContract.address);
-        }
+sendeth: function(){
+  var self = this;
+  var Multiply7 = web3.eth.contract(this.abiArray);
+  var multi = Multiply7.at(this.contractaddress);
+  multi.execute.sendTransaction("0x46422B32b6C8beD48595988dD602dCD221f181F5", 10000000000000000, null, function(err, res){
+    console.log(err, res);
+    self.waitTx(res, function(e){
+      console.log('tx waiting', e);
+      if(e){
+        console.log('tx done');
+      }
+    });
+  });
+},
 
-        // Note that the returned "myContractReturned" === "myContract",
-        // so the returned "myContractReturned" object will also get the address set.
-      };
-    }.bind(this));
-  },
+confirm: function(){
+  var self = this;
+  var Multiply7 = web3.eth.contract(this.abiArray);
+  var multi = Multiply7.at(this.contractaddress);
+  multi.confirm.sendTransaction("0x91809f01ad327dd18aa8bce0d9bf45cb2a87118452117bab8944a5b0da3fb1e1", function(err, res){
+    console.log(err, res);
+    self.waitTx(res, function(e){
+      console.log('tx waiting', e);
+      if(e){
+        console.log('tx done');
+      }
+    });
+  });
+},
+
+getTosign: function(){
+  var Multiply7 = web3.eth.contract(this.abiArray);
+  var multi = Multiply7.at(this.contractaddress);
+  var self = this;
+  // watch for an event with {some: 'args'}
+var events = multi.allEvents({fromBlock: 0, toBlock: 'latest'});
+events.watch(function(error, result){
+   console.log(result);
+   var wei = web3.toDecimal(result.args.value);
+   var value = web3.fromWei(wei, 'ether');
+
+ if(result.event==="ConfirmationNeeded"){
+   self.push('tosignevents', {
+     'event': result.event,
+     'to': result.args.to,
+     'initiator': result.args.initiator,
+     'logindex': result.logIndex,
+     'value': value
+ });
+ } else {
+   self.push('contractevents', {
+     'event': result.event,
+     'to': result.args.to,
+     'initiator': result.args.initiator,
+     'logindex': result.logIndex,
+     'value': value
+ });
+ }
+});
 
 
-  _accounts: function() {
-    console.log(this.accounts);
-  },
+},
 
-  _nrsign: function(){
-    console.log(this.nrsign);
-    var nr = this.nrsign;
-    nr++;
-    this.totalsign = nr;
-  },
+_contractaddress: function(){
+  //console.log(this.contractaddress);
+},
 
-  gotoCreatewallet: function() {
-    this.selected = 0;
-  },
+waitTx: function(txHash, callback) {
+     /*
+      * Watch for a particular transaction hash and call the awaiting function when done;
+      * Ether-pudding uses another method, with web3.eth.getTransaction(...) and checking the txHash;
+      * on https://github.com/ConsenSys/ether-pudding/blob/master/index.js
+      */
+     var self = this;
+     var blockCounter = 15;
+     // Wait for tx to be finished
 
-  gotoCreatetx: function() {
-    this.selected = 1;
-  },
-
-  gotoSign: function() {
-    this.selected = 2;
-  },
-
-  gotoSigned: function() {
-    this.selected = 3;
-  },
-
-  gotoSignmsg: function() {
-    this.selected = 4;
-  },
+     var filter = this.web3.eth.filter('latest').watch(function(err, blockHash) {
+       if (blockCounter <= 0) {
+         filter.stopWatching();
+         filter = null;
+         console.warn('!! Tx expired !!');
+         if (callback)
+           return callback(false);
+         else
+           return false;
+       };
+       // Get info about latest Ethereum block
+       self.web3.eth.getBlock(blockHash, function(err, res){
+         //debugger;
+        block = res;
+       });
+       --blockCounter;
+       // Found tx hash?
+       if (block && block.transactions.indexOf(txHash) > -1) {
+         // Tx is finished
+         filter.stopWatching();
+         filter = null;
+         if (callback)
+           return callback(true);
+         else
+           return true;
+         // Tx hash not found yet?
+         console.log('TX: ', blockCounter);
+       } else {
+          console.log('Waiting tx..', blockCounter);
+       }
+     });
+   }
 
 });
 </script>
