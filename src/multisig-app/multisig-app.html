@@ -23,7 +23,8 @@
     @apply(--paper-font-common-base);
     font-size: 14px;
     margin: 0;
-    padding: 24px;
+    height: 100vh;
+    display: block;
   }
   p {
     @apply(--paper-font-common-base);
@@ -86,6 +87,11 @@
     margin: 20px;
   }
 
+  .full {
+    width: 100vw;
+    height: 100vh;
+  }
+
   </style>
 
 
@@ -102,49 +108,46 @@
           data="{{routeData}}"
           tail="{{subroute}}"></app-route>
 
-  <div class="whitespace"></div>
 
 
-  <div class="horizontal-section-container">
+  <!-- <div class="horizontal-section-container">
     <a href="/add"><div class="menuitem" on-tap="gotoCreatewallet">Create multisigwallet</div></a>
     <div class="menuitem" on-tap="gotoCreatetx">New TX</div>
     <div class="menuitem" on-tap="gotoSign">To Sign</div>
     <div class="menuitem" on-tap="gotoSigned">Log</div>
-    <!-- <div class="menuitem" on-tap="gotoSignmsg">Sign msg</div> -->
-  </div>
+     <div class="menuitem" on-tap="gotoSignmsg">Sign msg</div>
+  </div> -->
 
-  <div class="whitespace"></div>
-
-
-<div class="whitespace"></div>
 
 
 <iron-pages role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" fallback-selection="404">
 
-    <div name="wallet" class="horizontal-section-container">
-      <div class="vertical-section-container">
-      <div>{{localstorage}}</div>
       <multisig-readwallet
+      class="full"
+        name="wallet"
         web3="{{web3}}"
         route="[[subroute]]"
         contractaddress="[[routeData.page]]"
         mainaccount="{{mainaccount}}">
       </multisig-readwallet>
-    </div>
-  </div>
-</DIV>
 
-      <div name="create" id="create" class="horizontal-section-container">
-        <multisig-createwallet on-wallet-added="savewallet" web3="{{web3}}"></multisig-createwallet>
-    </div>
+        <multisig-createwallet
+          name="create"
+          on-wallet-added="savewallet"
+          web3="{{web3}}">
+        </multisig-createwallet>
 
-    <div name="add" id="add" class="horizontal-section-container">
-      <multisig-addwallet on-wallet-added="savewallet"></multisig-addwallet>
-    </div>
+      <multisig-addwallet name="add" on-wallet-added="savewallet"></multisig-addwallet>
 
-    <div name="list" id="list" class="horizontal-section-container">
-      <multisig-walletlist mainaccount="{{mainaccount}}" data="[[cart]]" on-wallet-selected="gotowallet"></multisig-walletlist>
-    </div>
+      <multisig-walletlist
+        web3="{{web3}}"
+        class="full"
+        name="list"
+        mainaccount="{{mainaccount}}"
+        data="[[cart]]"
+        on-wallet-selected="gotowallet"
+        on-to-create="gotoCreate">
+      </multisig-walletlist>
 
     <div name="elsee" id="create" class="horizontal-section-container">
       <div class="vertical-section-container">
@@ -164,14 +167,6 @@
 
   </iron-pages>
 
-  <div id="" class="horizontal-section-container">
-    <div class="vertical-section-container">
-
-      <div class="whitespace"></div>
-      <div class="whitespace"></div><div class="whitespace"></div>
-      <small>Donations: 0x5263261bad400def63af145270b2bd144ec64e14</small>
-    </div>
-  </div>
 </template>
 
 <script>
@@ -234,7 +229,8 @@ Polymer({
         quantity: 1,
         size: e.detail.name
       });
-    this.set('route.path','/wallet/'+e.detail.address);
+      //debugger;
+      this.set('route.path','/wallet/'+e.detail.address+'/'+e.detail.name);
   },
 
   gotowallet: function(e){
@@ -271,8 +267,9 @@ Polymer({
     }.bind(this));
   },
 
-
-
+  gotoCreate: function(){
+    this.set('route.path', '/create');
+  },
 
   _accounts: function() {
     console.log(this.accounts);

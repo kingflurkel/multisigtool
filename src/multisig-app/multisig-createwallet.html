@@ -209,6 +209,7 @@ Polymer({
 },
 
 createContract: function() {
+  var self = this;
   console.log('Creating contract...');
   console.log('Compiling multisig.sol');
 
@@ -232,7 +233,12 @@ createContract: function() {
       // e.g. check tx hash on the first call (transaction send)
       if(!myContract.address) {
         console.log(myContract.transactionHash) // The hash of the transaction, which deploys the contract
-
+        self.waitTx(myContract.transactionHash, function(e){
+          console.log('tx waiting', e);
+          if(e){
+            console.log('tx done');
+          }
+        });
         // check address on the second call (contract deployed)
       } else {
         console.log(myContract.address) // the contract address

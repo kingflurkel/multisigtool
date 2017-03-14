@@ -4,32 +4,20 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
-<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../../bower_components/app-route/app-route.html">
-<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
-<link rel="import" href="../../bower_components/paper-styles/color.html">
-<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 
 <link rel="import" href="../../bower_components/paper-styles/color.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-styles/shadow.html">
 
-<link rel="import" href="./multisig-walletlistitem.html">
-
-<dom-module id="multisig-walletlist">
+<dom-module id="multisig-addwallet">
   <template>
   <style>
   :host {
     @apply(--paper-font-common-base);
     font-size: 14px;
     margin: 0;
-    height: 100vh;
-    background-color: red;
-  }
-  a {
-    color: var(--paper-light-blue-900);
-    font-size: 14px;
-    text-decoration: none;
+    padding: 24px;
   }
   p {
     @apply(--paper-font-common-base);
@@ -92,46 +80,27 @@
     margin: 20px;
   }
 
-  paper-fab.label {
-    font-size: 20px;
-  }
-
-  paper-fab {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 60px;
-    height: 60px;
-  }
-
-
-  paper-fab.blue {
-    --paper-fab-background: var(--paper-light-blue-500);
-    --paper-fab-keyboard-focus-background: var(--paper-light-blue-900);
-  }
-  paper-fab.orange {
-    --paper-fab-background: var(--paper-orange-500);
-    --paper-fab-keyboard-focus-background: var(--paper-orange-900);
-  }
-
-
   </style>
 
 
 
-  <div>
-    <template is="dom-repeat" items="{{data}}" attr-for-selected="name">
-      <multisig-walletlistitem
-        name="{{item.size}}"
-        address="{{item.item}}"
-        web3="{{web3}}"
-        on-select="fireselect">
-      </multisig-walletlistitem>
-      <!-- <div cname="{{item.size}}" name="{{item.item}}"><a href="/wallet/{{item.item}}/{{item.size}}/">{{item.size}} - {{item.item}}</a></div> -->
-    </template>
-  </div>
 
-  <paper-fab on-tap="create" icon="add" class="blue"></paper-fab>
+  <iron-pages selected="{{selected}}">
+    <div id="create" class="horizontal-section-container">
+      <div class="vertical-section-container">
+        <h2>multisig wallet adder</h2>
+        <p>Name of the multisig wallet:</p>
+        <paper-input placeholder="New name" bind-value="{{name}}"></paper-input>
+        <!-- <p>Nr. of signatures needed for tx:</p> -->
+        <!-- <paper-input type="number" placeholder="0" bind-value="{{nrsign}}"></paper-input> -->
+        <!-- <div>Nr. of signatures in total: {{totalsign}}</div> -->
+        <div class="whitespace"></div>
+        <paper-input type="text" placeholder="0x..." bind-value="{{address}}" value=""></paper-input>
+        <div class="whitespace"></div>
+        <paper-button on-tap="add">Add</paper-button>
+      </div>
+    </div>
+  </iron-pages>
 
 </template>
 
@@ -140,12 +109,10 @@
 Polymer({
 
 
-  is: 'multisig-walletlist',
+  is: 'multisig-addwallet',
 
   properties: {
-    data: {
-      type: Array
-    }
+
   },
 
   ready: function() {
@@ -153,13 +120,8 @@ Polymer({
     // let's find a web3
   },
 
-  create: function(){
-    this.fire('to-create');
-  },
-
-  fireselect: function(e){
-    console.log(e.detail);
-    this.fire('wallet-selected', {'address': e.detail.address, 'name': e.detail.name });
+  add: function(){
+    this.fire('wallet-added', {'name': this.name, 'address': this.address });
   }
 
 });
