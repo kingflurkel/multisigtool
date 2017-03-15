@@ -3,14 +3,17 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../bower_components/app-route/app-route.html">
 <link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 
 <link rel="import" href="../../bower_components/paper-styles/color.html">
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-styles/shadow.html">
 <link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="./multisig-signlistitem.html">
 
 <dom-module id="multisig-readwallet">
   <template>
@@ -18,8 +21,6 @@
 
   <style>
   :host {
-    margin: 0;
-    padding: 0;
     display: block;
     height: 100vh;
   }
@@ -28,7 +29,7 @@
     margin-bottom: 10px;
   }
   .wallethead {
-    background-color: blue;
+    background-color: var(--google-grey-100);
   }
   .container {
     width: 100vw;
@@ -79,6 +80,7 @@
     right: 30px;
     width: 60px;
     height: 60px;
+    z-index: 100;
   }
 
 
@@ -102,7 +104,7 @@
 
       <div class="wallethead">
         <div class="layout horizontal">
-          <paper-icon-button icon="arrow-back"></paper-icon-button>
+          <paper-icon-button icon="arrow-back" on-tap="gotolist"></paper-icon-button>
           <div class="flex"></div>
         <p>deposit</p>
       </div>
@@ -116,21 +118,27 @@
 
       </div>
 
-
-
       <paper-tabs selected="{{selected}}" attr-for-selected="name">
         <paper-tab name="tosign">To Sign</paper-tab>
         <paper-tab name="log">Log</paper-tab>
       </paper-tabs>
 
-
   <iron-pages selected="{{selected}}" attr-for-selected="name">
 
         <div name="tosign">
-          <h3>tosign</h3>
+          <paper-listbox selected="0">
         <template is="dom-repeat" items="{{tosignevents}}">
-          <p>{{item.logindex}}-{{item.event}}-{{item.value}}</p>
+          <multisig-signlistitem
+            on-confirm="confirm"
+            event="{{item.event}}"
+            value="{{item.value}}"
+            operation="{{item.operation}}"
+            initiator="{{item.initiator}}"
+            data="{{item.data}}"
+            logindex="{{item.logindex}}">
+          </multisig-signlistitem>
         </template>
+      </paper-listbox>
       </div>
 
         <div name="log">
@@ -143,7 +151,7 @@
 
 
   </iron-pages>
-  <paper-fab on-tap="create" icon="add" class="blue"></paper-fab>
+  <paper-fab on-tap="sendeth" icon="add" class="blue"></paper-fab>
 
 </div>
 </template>
@@ -196,11 +204,13 @@ Polymer({
   ready: function() {
     this.selected = "tosign";
     // let's find a web3
+    //this._mainaccount();
   },
 
   _route: function(){
     //debugger;
     console.log(this.routeData.address);
+
     this.contractaddress = this.routeData.address;
     this.contractname = this.routeData.name;
   },
@@ -244,7 +254,8 @@ sendeth: function(){
   var self = this;
   var Multiply7 = web3.eth.contract(this.abiArray);
   var multi = Multiply7.at(this.contractaddress);
-  multi.execute.sendTransaction("0x46422B32b6C8beD48595988dD602dCD221f181F5", 10000000000000000, null, function(err, res){
+  var data = web3.toHex('Diti s een test');
+  multi.execute.sendTransaction("0x46422B32b6C8beD48595988dD602dCD221f181F5", 10000000000000000, data, function(err, res){
     console.log(err, res);
     self.waitTx(res, function(e){
       console.log('tx waiting', e);
@@ -255,11 +266,12 @@ sendeth: function(){
   });
 },
 
-confirm: function(){
+confirm: function(e){
+  console.log('confirm operation ', e.detail.operation);
   var self = this;
   var Multiply7 = web3.eth.contract(this.abiArray);
   var multi = Multiply7.at(this.contractaddress);
-  multi.confirm.sendTransaction("0x91809f01ad327dd18aa8bce0d9bf45cb2a87118452117bab8944a5b0da3fb1e1", function(err, res){
+  multi.confirm.sendTransaction(e.detail.operation, function(err, res){
     console.log(err, res);
     self.waitTx(res, function(e){
       console.log('tx waiting', e);
@@ -280,13 +292,24 @@ events.watch(function(error, result){
    console.log(result);
    var wei = web3.toDecimal(result.args.value);
    var value = web3.fromWei(wei, 'ether');
+   try {
+     var data = web3.toAscii(result.args.data);
+   } catch (e) {
+     console.log('something wrong?', result.args.data);
 
- if(result.event==="ConfirmationNeeded"){
+   } finally {
+     //var data = web3.toAscii(result.args.data);
+   }
+
+   //var data;
+ if(result.event=="ConfirmationNeeded"){
    self.push('tosignevents', {
      'event': result.event,
      'to': result.args.to,
      'initiator': result.args.initiator,
      'logindex': result.logIndex,
+     'operation': result.args.operation,
+     'data': data,
      'value': value
  });
  } else {
@@ -301,6 +324,10 @@ events.watch(function(error, result){
 });
 
 
+},
+
+gotolist: function() {
+  this.fire('to-list');
 },
 
 _contractaddress: function(){

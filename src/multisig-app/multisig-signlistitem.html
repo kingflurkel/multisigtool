@@ -10,23 +10,35 @@
 <link rel="import" href="../../bower_components/paper-styles/typography.html">
 <link rel="import" href="../../bower_components/paper-styles/shadow.html">
 
-<dom-module id="multisig-addwallet">
+
+<dom-module id="multisig-signlistitem">
   <template>
+  <style include="iron-flex iron-flex-alignment">
+
   <style>
   :host {
     @apply(--paper-font-common-base);
-    font-size: 14px;
+    width: 100%;
+    display: block;
+    color: white;
+    background-color: red;
     margin: 0;
-    padding: 24px;
+    padding: 0;
+    border-bottom: 3px solid white;
   }
+
+  :host iron-select {
+    background-color: white;
+  }
+
+    .container {
+      height: 48px;
+    }
+
   p {
     @apply(--paper-font-common-base);
     font-size: 14px;
-    margin-top: 20px;
-    margin-bottom: -10px;
     line-height: normal;
-    padding-top: 10px;
-    border-bottom: 1px dashed var(--paper-grey-30);
   }
   paper-input {
     margin-bottom: 10px;
@@ -65,10 +77,6 @@
   code {
     color: var(--google-grey-700);
   }
-  /* TODO: remove this hack and use horizontal-section-container instead */
-  body > div.layout.horizontal.center-justified {
-    @apply(--layout-wrap);
-  }
 
   .menuitem {
     padding: 5px;
@@ -80,44 +88,83 @@
     margin: 20px;
   }
 
+
+  .blue {
+    color: red;
+    background-color: yellow;
+  }
+
+
+
   </style>
+ <div class="container">
+  <div class="horizontal layout">
 
 
 
 
-  <iron-pages selected="{{selected}}">
-    <div id="create" class="horizontal-section-container">
-      <div class="vertical-section-container">
-        <h2>multisig wallet adder</h2>
-        <p>Name of the multisig wallet:</p>
-        <paper-input placeholder="New name" bind-value="{{name}}"></paper-input>
-        <!-- <p>Nr. of signatures needed for tx:</p> -->
-        <!-- <paper-input type="number" placeholder="0" bind-value="{{nrsign}}"></paper-input> -->
-        <!-- <div>Nr. of signatures in total: {{totalsign}}</div> -->
-        <div class="whitespace"></div>
-        <paper-input type="text" placeholder="0x..." bind-value="{{address}}" value=""></paper-input>
-        <div class="whitespace"></div>
-        <paper-button on-tap="add">Add</paper-button>
-      </div>
-    </div>
-  </iron-pages>
+    <div>{{event}} - {{logindex}} - {{value}} - {{data}}</div>
+   <div class="flex"></div>
+   <template is="dom-if" if="{{ariaSelected}}">
+   <paper-icon-button icon="check" class="blue" on-tap="fireconfirm"></paper-icon-button>
+ </template>
+  </div>
+</div>
 
 </template>
+
 
 <script>
 
 Polymer({
 
 
-  is: 'multisig-addwallet',
+  is: 'multisig-signlistitem',
 
   properties: {
-
+    name: {
+      type: String
+    },
+    address: {
+      type: String,
+      observer: '_getStuff'
+    },
+    ariaSelected: {
+      Type: Boolean,
+      observer: '_selected'
+    },
+    web3: {
+      type: Object,
+      observer: '_getStuff'
+    },
+    balance: {
+      type: Number
+    }
   },
 
   ready: function() {
     this.selected = 0;
     // let's find a web3
+  },
+
+  _getStuff: function() {
+    if(this.web3 && this.address){
+      //debugger;
+      var web3 = this.web3;
+      var self = this;
+      console.log('listitem got web3 and address');
+      web3.eth.getBalance(this.address, 'latest', function(n,e){
+        console.log(n, web3.toDecimal(e));
+        var wei = web3.toDecimal(e);
+        self.balance = web3.fromWei(wei, 'ether');
+        console.log(web3.fromWei(wei, 'ether'));
+      });
+    }
+  },
+
+
+  fireconfirm: function(){
+    this.fire('confirm', { 'operation': this.operation});
   },
 
   add: function(){

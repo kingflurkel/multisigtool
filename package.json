@@ -1,0 +1,30 @@
+{
+  "name": "multisigwallet",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "browser-sync": "^2.18.8"
+  },
+  "devDependencies": {
+    "browser-sync": "^2.18.8"
+  },
+  "scripts": {
+    "dev": "polymer serve & npm run watch",
+    "test": "polymer test",
+    "watch": "browser-sync start --proxy localhost:8080 --files 'src/*.html, src/*.js, images/*' "
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kingflurkel/multisigtool.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kingflurkel/multisigtool/issues"
+  },
+  "homepage": "https://github.com/kingflurkel/multisigtool#readme"
+}

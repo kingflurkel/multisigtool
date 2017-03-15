@@ -23,6 +23,7 @@
     @apply(--paper-font-common-base);
     font-size: 14px;
     margin: 0;
+    max-width: 360px;
     height: 100vh;
     display: block;
   }
@@ -41,6 +42,7 @@
   iron-pages {
     width: 100%;
     height: 100%;
+    max-width: 360px;
   }
   .horizontal-section-container {
     @apply(--layout-horizontal);
@@ -64,6 +66,7 @@
     margin: 0 24px 24px 24px;
     @apply(--shadow-elevation-2dp);
   }
+
   .centered {
     max-width: 400px;
     margin-left: auto;
@@ -120,11 +123,17 @@
 
 
 
-<iron-pages role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" fallback-selection="404">
+<iron-pages
+  role="main"
+  selected="[[page]]"
+  attr-for-selected="name"
+  selected-attribute="visible"
+  fallback-selection="list">
 
       <multisig-readwallet
       class="full"
         name="wallet"
+        on-to-list="gotolist"
         web3="{{web3}}"
         route="[[subroute]]"
         contractaddress="[[routeData.page]]"
@@ -209,7 +218,8 @@ Polymer({
 
   ready: function() {
     this.selected = 0;
-
+    console.log('current route: -', this.route.path, '-');
+    this.gotolist();
     // let's find a web3
     if (typeof web3 !== 'undefined') {
       web3 = new Web3(web3.currentProvider);
@@ -269,6 +279,10 @@ Polymer({
 
   gotoCreate: function(){
     this.set('route.path', '/create');
+  },
+
+  gotolist: function() {
+    this.set('route.path', '/list');
   },
 
   _accounts: function() {
